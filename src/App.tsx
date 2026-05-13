@@ -1,12 +1,26 @@
+import { Navigate, Route, Routes } from 'react-router-dom';
+import { RequireAuth } from '@/components/require-auth';
+import { AppShell } from '@/components/app-shell';
+import LoginRoute from '@/routes/login';
+import SignupRoute from '@/routes/signup';
+import ReceiptsRoute from '@/routes/receipts';
+
 export default function App() {
   return (
-    <div className="min-h-screen flex items-center justify-center p-8">
-      <div className="max-w-md text-center space-y-2">
-        <h1 className="text-2xl font-semibold">Receipts</h1>
-        <p className="text-muted-foreground">
-          Turn messy receipts into structured, queryable data.
-        </p>
-      </div>
-    </div>
+    <Routes>
+      <Route path="/login" element={<LoginRoute />} />
+      <Route path="/signup" element={<SignupRoute />} />
+      <Route
+        path="/receipts"
+        element={
+          <RequireAuth>
+            <AppShell>
+              <ReceiptsRoute />
+            </AppShell>
+          </RequireAuth>
+        }
+      />
+      <Route path="*" element={<Navigate to="/receipts" replace />} />
+    </Routes>
   );
 }
