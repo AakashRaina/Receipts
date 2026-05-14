@@ -107,7 +107,48 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      category_breakdown: {
+        Args: {
+          category_filter?: string
+          from_date?: string
+          payment_filter?: string
+          to_date?: string
+          vendor_filter?: string
+        }
+        Returns: {
+          category: string
+          count: number
+          total: number
+        }[]
+      }
+      spend_summary: {
+        Args: {
+          category_filter?: string
+          from_date?: string
+          payment_filter?: string
+          to_date?: string
+          vendor_filter?: string
+        }
+        Returns: {
+          count: number
+          total: number
+        }[]
+      }
+      top_vendors: {
+        Args: {
+          category_filter?: string
+          from_date?: string
+          payment_filter?: string
+          result_limit?: number
+          to_date?: string
+          vendor_filter?: string
+        }
+        Returns: {
+          count: number
+          total: number
+          vendor_normalized: string
+        }[]
+      }
     }
     Enums: {
       receipt_status: "pending" | "processing" | "ready" | "failed"

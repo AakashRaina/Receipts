@@ -7,10 +7,9 @@ export type ReceiptRow = Database['public']['Tables']['receipts']['Row'];
 export type ReceiptFilters = {
   vendor?: string;
   category?: string;
+  paymentMethod?: string;
   from?: string; // YYYY-MM-DD
   to?: string;   // YYYY-MM-DD
-  minAmount?: number;
-  maxAmount?: number;
   q?: string;
 };
 
@@ -31,10 +30,9 @@ export function useReceipts(
 
       if (filters.vendor) q = q.eq('vendor_normalized', filters.vendor);
       if (filters.category) q = q.eq('category', filters.category);
+      if (filters.paymentMethod) q = q.eq('payment_method', filters.paymentMethod);
       if (filters.from) q = q.gte('date', filters.from);
       if (filters.to) q = q.lte('date', filters.to);
-      if (filters.minAmount != null) q = q.gte('total', filters.minAmount);
-      if (filters.maxAmount != null) q = q.lte('total', filters.maxAmount);
 
       const { data, error } = await q;
       if (error) throw error;
@@ -75,6 +73,70 @@ export function useDistinctVendors() {
       const set = new Set<string>();
       for (const r of data ?? []) if (r.vendor_normalized) set.add(r.vendor_normalized);
       return Array.from(set).sort();
+    },
+  });
+}
+
+// Aggregate RPC inputs share the same shape; null fields = "no constraint".
+function aggregateArgs(filters: ReceiptFilters) {
+  return {
+    from_date: filters.from ?? undefined,
+    to_date: filters.to ?? undefined,
+    category_filter: filters.category ?? undefined,
+    vendor_filter: filters.vendor ?? undefined,
+    payment_filter: filters.paymentMethod ?? undefined,
+  };
+}
+
+export function useDistinctPaymentMethods() {
+  return useQuery({
+    queryKey: ['distinct-payment-methods'],
+    staleTime: 60_000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('receipts')
+        .select('payment_method')
+        .not('payment_method', 'is', null);
+      if (error) throw error;
+      const set = new Set<string>();
+      for (const r of data ?? []) if (r.payment_method) set.add(r.payment_method);
+      return Array.from(set).sort();
+    },
+  });
+}
+
+export function useSpendSummary(filters: ReceiptFilters = EMPTY_FILTERS) {
+  return useQuery({
+    queryKey: ['spend-summary', filters],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('spend_summary', aggregateArgs(filters));
+      if (error) throw error;
+      return data?.[0] ?? { total: 0, count: 0 };
+    },
+  });
+}
+
+export function useCategoryBreakdown(filters: ReceiptFilters = EMPTY_FILTERS) {
+  return useQuery({
+    queryKey: ['category-breakdown', filters],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('category_breakdown', aggregateArgs(filters));
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+}
+
+export function useTopVendors(filters: ReceiptFilters = EMPTY_FILTERS, limit = 5) {
+  return useQuery({
+    queryKey: ['top-vendors', filters, limit],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('top_vendors', {
+        ...aggregateArgs(filters),
+        result_limit: limit,
+      });
+      if (error) throw error;
+      return data ?? [];
     },
   });
 }

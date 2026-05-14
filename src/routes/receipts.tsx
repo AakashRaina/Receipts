@@ -1,13 +1,39 @@
+import { useEffect, useMemo, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { UploadReceiptDialog } from '@/components/upload-receipt-dialog';
 import { ReceiptList } from '@/components/receipt-list';
-import { useReceipts } from '@/lib/queries';
+import { FilterBar } from '@/components/filter-bar';
+import { SpendSummary } from '@/components/spend-summary';
+import { useReceipts, type ReceiptFilters } from '@/lib/queries';
+import { defaultFilters, isDefaultFilters, parseFilters, serializeFilters } from '@/lib/filters';
 
 export default function ReceiptsRoute() {
   const queryClient = useQueryClient();
-  const { data: rows, isPending, error } = useReceipts();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialized = useRef(false);
+
+  // First visit (or fresh navigation to /receipts) with no filter params:
+  // apply the "This month" default. Explicitly clearing filters is preserved
+  // for the rest of this mount.
+  useEffect(() => {
+    if (initialized.current) return;
+    initialized.current = true;
+    if (searchParams.toString() === '') {
+      setSearchParams(serializeFilters(defaultFilters()), { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
+
+  const filters = useMemo(() => parseFilters(searchParams), [searchParams]);
+  const filtering = !isDefaultFilters(filters);
+
+  const { data: rows, isPending, error } = useReceipts(filters);
+
+  function handleFiltersChange(next: ReceiptFilters) {
+    setSearchParams(serializeFilters(next), { replace: true });
+  }
 
   function handleUploaded() {
     queryClient.invalidateQueries({ queryKey: ['receipts'] });
@@ -17,16 +43,18 @@ export default function ReceiptsRoute() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-end justify-between gap-2">
-        <div>
-          <h1 className="text-2xl font-semibold">Receipts</h1>
-          <p className="text-muted-foreground text-sm">
-            {rows && rows.length > 0
-              ? `${rows.length} receipt${rows.length === 1 ? '' : 's'}`
-              : 'Your uploaded receipts will appear here.'}
-          </p>
-        </div>
+      <div>
+        <h1 className="text-2xl font-semibold">Receipts</h1>
+        <p className="text-muted-foreground text-sm">
+          {rows && rows.length > 0
+            ? `${rows.length} receipt${rows.length === 1 ? '' : 's'}${filtering ? ' match the filters' : ''}`
+            : 'Your uploaded receipts will appear here.'}
+        </p>
       </div>
+
+      <SpendSummary filters={filters} />
+
+      <FilterBar filters={filters} onChange={handleFiltersChange} />
 
       {error && (
         <p className="text-sm text-destructive">Couldn’t load receipts: {error.message}</p>
@@ -34,17 +62,28 @@ export default function ReceiptsRoute() {
 
       {isPending && <p className="text-sm text-muted-foreground">Loading…</p>}
 
-      {!isPending && rows && rows.length === 0 && (
+      {!isPending && rows && rows.length === 0 && !filtering && (
         <Card>
           <CardHeader>
-            <CardTitle>No receipts yet</CardTitle>
-            <CardDescription>Upload your first receipt to get started.</CardDescription>
+            <CardTitle>Nothing for this month</CardTitle>
+            <CardDescription>
+              Upload a receipt, or pick a different date range above.
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <UploadReceiptDialog onUploaded={handleUploaded}>
               <Button>Upload a receipt</Button>
             </UploadReceiptDialog>
           </CardContent>
+        </Card>
+      )}
+
+      {!isPending && rows && rows.length === 0 && filtering && (
+        <Card>
+          <CardHeader>
+            <CardTitle>No matches</CardTitle>
+            <CardDescription>Try relaxing your filters or reset to this month.</CardDescription>
+          </CardHeader>
         </Card>
       )}
 
