@@ -1,4 +1,6 @@
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { UploadReceiptDialog } from '@/components/upload-receipt-dialog';
 
 export default function ReceiptsRoute() {
   return (
@@ -13,7 +15,9 @@ export default function ReceiptsRoute() {
           <CardDescription>Upload your first receipt to get started.</CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground">Upload UI lands in Phase 1.</p>
+          <UploadReceiptDialog>
+            <Button>Upload a receipt</Button>
+          </UploadReceiptDialog>
         </CardContent>
       </Card>
     </div>

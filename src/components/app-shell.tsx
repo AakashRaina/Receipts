@@ -1,5 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { UploadReceiptDialog } from '@/components/upload-receipt-dialog';
 import { supabase } from '@/lib/supabase';
 import { useSession } from '@/lib/use-session';
 
@@ -20,6 +21,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             Receipts
           </Link>
           <div className="flex items-center gap-3 text-sm">
+            <UploadReceiptDialog>
+              <Button size="sm">Upload</Button>
+            </UploadReceiptDialog>
             <span className="text-muted-foreground hidden sm:inline">
               {session?.user.email}
             </span>
