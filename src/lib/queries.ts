@@ -42,6 +42,22 @@ export function useReceipts(
   });
 }
 
+export function useReceipt(id: string | undefined) {
+  return useQuery({
+    queryKey: ['receipt', id],
+    enabled: !!id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('receipts')
+        .select('*')
+        .eq('id', id!)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
 // Distinct values for filter dropdowns. Cached longer since they change slowly.
 export function useDistinctCategories() {
   return useQuery({
