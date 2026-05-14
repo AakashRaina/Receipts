@@ -13,6 +13,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { UploadDropzone } from '@/components/upload-dropzone';
 import { supabase } from '@/lib/supabase';
+import { formatReceiptDate } from '@/lib/utils';
 import type { Receipt } from '@/lib/schemas/receipt';
 
 type Stage = 'idle' | 'uploading' | 'reading' | 'almost' | 'done' | 'error';
@@ -178,7 +179,7 @@ export function UploadReceiptDialog({
             <div className="space-y-1">
               <p className="font-medium">{receipt.vendor}</p>
               <p className="text-xs text-muted-foreground">
-                {receipt.date} · {receipt.category}
+                {formatReceiptDate(receipt.date)} · {receipt.category}
               </p>
             </div>
             <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
