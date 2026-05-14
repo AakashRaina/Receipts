@@ -33,6 +33,7 @@ export function useReceipts(
       if (filters.paymentMethod) q = q.eq('payment_method', filters.paymentMethod);
       if (filters.from) q = q.gte('date', filters.from);
       if (filters.to) q = q.lte('date', filters.to);
+      if (filters.q) q = q.textSearch('search_vector', filters.q, { type: 'websearch' });
 
       const { data, error } = await q;
       if (error) throw error;

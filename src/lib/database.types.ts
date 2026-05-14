@@ -53,6 +53,7 @@ export type Database = {
           line_items: Json | null
           payment_method: string | null
           raw_text: string | null
+          search_vector: unknown
           status: Database["public"]["Enums"]["receipt_status"]
           total: number | null
           updated_at: string
@@ -73,6 +74,7 @@ export type Database = {
           line_items?: Json | null
           payment_method?: string | null
           raw_text?: string | null
+          search_vector?: unknown
           status?: Database["public"]["Enums"]["receipt_status"]
           total?: number | null
           updated_at?: string
@@ -93,6 +95,7 @@ export type Database = {
           line_items?: Json | null
           payment_method?: string | null
           raw_text?: string | null
+          search_vector?: unknown
           status?: Database["public"]["Enums"]["receipt_status"]
           total?: number | null
           updated_at?: string
