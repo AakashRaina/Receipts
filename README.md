@@ -21,6 +21,19 @@ Once all three exist, the dashboard becomes a monthly reconciliation view: the
 statement total broken down by which transactions have matching receipts or
 invoices, and which don't.
 
+## Visuals
+
+**Receipts list** — spend summary at the top, search and faceted filters,
+table below. Filter state lives in the URL.
+
+![Receipts list with summary, filters, and table](./landing-page.png)
+
+**Review and edit** — the uploaded image on the left, extracted fields on the
+right. Fields the AI wasn't sure about (`confidence < 0.7`) get an amber
+treatment until the user confirms or fixes them.
+
+![Detail page with side-by-side image and editable fields](./review-page.png)
+
 ## Features (MVP — receipts only)
 
 - Email/password auth (no verification step)
