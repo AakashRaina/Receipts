@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { AlertTriangle, Check, Pencil, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -27,7 +27,6 @@ export function EditableField({
   const [draft, setDraft] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const inputRef = useRef<HTMLInputElement | null>(null);
 
   const isLow = confidence != null && confidence < LOW_CONFIDENCE;
 
@@ -35,7 +34,7 @@ export function EditableField({
     setError(null);
     setDraft(value == null ? '' : String(value));
     setEditing(true);
-    requestAnimationFrame(() => inputRef.current?.focus());
+    // The Input below has `autoFocus`, which fires on this mount.
   }
 
   function cancel() {
@@ -98,7 +97,7 @@ export function EditableField({
       {editing ? (
         <div className="flex items-center gap-1.5">
           <Input
-            ref={inputRef}
+            autoFocus
             type={type === 'date' ? 'date' : type === 'number' ? 'number' : 'text'}
             inputMode={type === 'number' ? 'decimal' : undefined}
             value={draft}

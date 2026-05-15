@@ -28,16 +28,6 @@ import type { Confidence } from '@/lib/schemas/receipt';
 
 const LOW_CONFIDENCE = 0.7;
 
-// EditableField keys -> confidence keys.
-const CONF_KEY: Partial<Record<EditableFieldKey, keyof Confidence>> = {
-  vendor: 'vendor',
-  date: 'date',
-  total: 'total',
-  gst: 'gst',
-  category: 'category',
-  payment_method: 'payment_method',
-};
-
 export default function ReceiptDetailRoute() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -62,11 +52,9 @@ export default function ReceiptDetailRoute() {
   }, [receipt?.image_path]);
 
   const confidence = (receipt?.confidence as Confidence | null) ?? null;
-  const lowConfidenceFields = receipt
-    ? (Object.entries(CONF_KEY) as Array<[EditableFieldKey, keyof Confidence]>)
-        .filter(([, confKey]) => (confidence?.[confKey] ?? 1) < LOW_CONFIDENCE)
-        .map(([fieldKey]) => fieldKey)
-    : [];
+  const lowConfidenceCount = confidence
+    ? Object.values(confidence).filter((v) => v < LOW_CONFIDENCE).length
+    : 0;
 
   async function saveField<K extends EditableFieldKey>(field: K, value: unknown) {
     await updateField.mutateAsync({
@@ -155,12 +143,12 @@ export default function ReceiptDetailRoute() {
             </div>
           )}
 
-          {receipt.status === 'ready' && lowConfidenceFields.length > 0 && (
+          {receipt.status === 'ready' && lowConfidenceCount > 0 && (
             <div className="rounded-lg border border-amber-400/40 bg-amber-50/50 dark:bg-amber-950/20 p-3 flex items-center gap-2 text-sm">
               <AlertTriangle className="h-4 w-4 text-amber-500" />
               <span>
-                <strong>{lowConfidenceFields.length}</strong> field
-                {lowConfidenceFields.length === 1 ? '' : 's'} might need a quick check.
+                <strong>{lowConfidenceCount}</strong> field
+                {lowConfidenceCount === 1 ? '' : 's'} might need a quick check.
               </span>
             </div>
           )}

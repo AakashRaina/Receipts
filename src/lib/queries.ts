@@ -60,38 +60,34 @@ export function useReceipt(id: string | undefined) {
 }
 
 // Distinct values for filter dropdowns. Cached longer since they change slowly.
-export function useDistinctCategories() {
+function useDistinctColumnValues(
+  queryKey: string,
+  column: 'category' | 'vendor_normalized' | 'payment_method',
+) {
   return useQuery({
-    queryKey: ['distinct-categories'],
+    queryKey: [queryKey],
     staleTime: 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('receipts')
-        .select('category')
-        .not('category', 'is', null);
+        .select(column)
+        .not(column, 'is', null);
       if (error) throw error;
       const set = new Set<string>();
-      for (const r of data ?? []) if (r.category) set.add(r.category);
+      for (const row of (data ?? []) as Array<Record<string, string | null>>) {
+        const v = row[column];
+        if (v) set.add(v);
+      }
       return Array.from(set).sort();
     },
   });
 }
 
+export function useDistinctCategories() {
+  return useDistinctColumnValues('distinct-categories', 'category');
+}
 export function useDistinctVendors() {
-  return useQuery({
-    queryKey: ['distinct-vendors'],
-    staleTime: 60_000,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('receipts')
-        .select('vendor_normalized')
-        .not('vendor_normalized', 'is', null);
-      if (error) throw error;
-      const set = new Set<string>();
-      for (const r of data ?? []) if (r.vendor_normalized) set.add(r.vendor_normalized);
-      return Array.from(set).sort();
-    },
-  });
+  return useDistinctColumnValues('distinct-vendors', 'vendor_normalized');
 }
 
 // Aggregate RPC inputs share the same shape; null fields = "no constraint".
@@ -106,20 +102,7 @@ function aggregateArgs(filters: ReceiptFilters) {
 }
 
 export function useDistinctPaymentMethods() {
-  return useQuery({
-    queryKey: ['distinct-payment-methods'],
-    staleTime: 60_000,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('receipts')
-        .select('payment_method')
-        .not('payment_method', 'is', null);
-      if (error) throw error;
-      const set = new Set<string>();
-      for (const r of data ?? []) if (r.payment_method) set.add(r.payment_method);
-      return Array.from(set).sort();
-    },
-  });
+  return useDistinctColumnValues('distinct-payment-methods', 'payment_method');
 }
 
 export function useSpendSummary(filters: ReceiptFilters = EMPTY_FILTERS) {
