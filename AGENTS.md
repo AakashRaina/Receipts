@@ -116,6 +116,11 @@ pattern.
 - **Don't put server-only secrets in `.env.local`** and expect `vercel dev`
   to read them. It reliably reads `.env` only; `VITE_*` keys are duplicated
   there for the function's runtime access.
+- **Don't omit the `.js` extension on relative imports inside `api/*.ts`.**
+  `package.json` has `"type": "module"`, so the function runs as native
+  ESM on Vercel and Node's loader rejects extensionless paths
+  (`ERR_MODULE_NOT_FOUND`). TypeScript and `vercel dev` are lenient about
+  this; production isn't. Example: `import … from '../src/lib/schemas/receipt.js'`.
 
 ## Extending to invoices / bank statements
 
