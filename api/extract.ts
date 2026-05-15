@@ -5,8 +5,10 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
 import { GoogleGenAI } from '@google/genai';
-import { ReceiptSchema, ReceiptJsonSchema } from '../src/lib/schemas/receipt';
-import type { Database } from '../src/lib/database.types';
+// Node ESM at runtime requires explicit .js extensions on relative imports.
+// TypeScript resolves the .js path back to the .ts source for type-checking.
+import { ReceiptSchema, ReceiptJsonSchema } from '../src/lib/schemas/receipt.js';
+import type { Database } from '../src/lib/database.types.js';
 
 export const config = { maxDuration: 60 };
 
