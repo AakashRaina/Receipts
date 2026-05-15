@@ -128,6 +128,16 @@ npx vercel dev    # Vite + /api/extract together — required for upload
 npm run build
 ```
 
+## Test
+
+```bash
+npm test          # watch mode
+npm run test:run  # one-shot — what CI runs
+```
+
+Vitest + React Testing Library + happy-dom. Tests live next to the file
+under test (`*.test.ts` / `*.test.tsx`).
+
 ## Deploy
 
 Push to a GitHub repo, import into Vercel, and set these env vars in the

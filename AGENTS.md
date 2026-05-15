@@ -63,6 +63,7 @@ supabase/migrations/          Forward-only SQL migrations.
 npm run dev          # Vite only, port 5173. UI work that doesn't hit /api.
 npx vercel dev       # Vite + /api/extract, port 3000. Required for upload.
 npm run build        # tsc + vite build. Run before commits.
+npm run test:run     # Vitest one-shot. `npm test` for watch mode.
 ```
 
 Schema changes:
@@ -90,6 +91,22 @@ status line otherwise leaks into the types file and breaks TypeScript.
   the "low confidence" amber treatment clears on user-confirmed edits.
 - **Money** is INR-only for now. `currency` is captured but not used for FX.
 - **Comments** only when the WHY isn't obvious. Type names carry the WHAT.
+
+## Tests
+
+Vitest + React Testing Library + happy-dom. Test files live next to the
+file under test (`*.test.ts` / `*.test.tsx`). Coverage today is roughly:
+
+- **Pure functions** — `lib/filters`, `lib/utils`, `lib/schemas/receipt`
+- **Components** — `editable-field`, `search-input`
+- **Hooks with mocked Supabase** — `lib/queries`, `lib/mutations`
+
+For the data layer, each test file inlines its own Supabase mock inside a
+`vi.hoisted(() => { … })` block (vi.mock factories are hoisted above
+regular imports, so the mock must be hoisted too). The mock is a Proxy
+that records every chain method call and resolves on await — assertions
+look at the recorded calls. See `src/lib/queries.test.tsx` for the
+pattern.
 
 ## Don't
 
