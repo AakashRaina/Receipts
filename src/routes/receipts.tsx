@@ -6,6 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { UploadReceiptDialog } from '@/components/upload-receipt-dialog';
 import { ReceiptList } from '@/components/receipt-list';
 import { FilterBar } from '@/components/filter-bar';
+import { MobileFilterSheet } from '@/components/mobile-filter-sheet';
+import { SearchInput } from '@/components/search-input';
 import { SpendSummary } from '@/components/spend-summary';
 import { useReceipts, type ReceiptFilters } from '@/lib/queries';
 import { defaultFilters, isDefaultFilters, parseFilters, serializeFilters } from '@/lib/filters';
@@ -35,6 +37,10 @@ export default function ReceiptsRoute() {
     setSearchParams(serializeFilters(next), { replace: true });
   }
 
+  function handleSearchChange(next: string | undefined) {
+    handleFiltersChange({ ...filters, q: next });
+  }
+
   function handleUploaded() {
     queryClient.invalidateQueries({ queryKey: ['receipts'] });
     queryClient.invalidateQueries({ queryKey: ['distinct-categories'] });
@@ -54,7 +60,17 @@ export default function ReceiptsRoute() {
 
       <SpendSummary filters={filters} />
 
-      <FilterBar filters={filters} onChange={handleFiltersChange} />
+      <SearchInput value={filters.q} onChange={handleSearchChange} />
+
+      {/* Desktop: inline filter panel */}
+      <div className="hidden md:block rounded-lg border p-3">
+        <FilterBar filters={filters} onChange={handleFiltersChange} />
+      </div>
+
+      {/* Mobile: filters live in a bottom sheet */}
+      <div className="md:hidden">
+        <MobileFilterSheet filters={filters} onChange={handleFiltersChange} />
+      </div>
 
       {error && (
         <p className="text-sm text-destructive">Couldn’t load receipts: {error.message}</p>

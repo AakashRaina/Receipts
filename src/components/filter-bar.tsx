@@ -1,4 +1,3 @@
-import { useEffect, useRef, useState } from 'react';
 import {
   endOfMonth,
   endOfYear,
@@ -8,7 +7,7 @@ import {
   subDays,
   subMonths,
 } from 'date-fns';
-import { Search, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -29,7 +28,6 @@ import { defaultFilters, isDefaultFilters } from '@/lib/filters';
 import { cn } from '@/lib/utils';
 
 const ANY = '__any__';
-const MIN_SEARCH_CHARS = 4;
 
 type Preset = { id: string; label: string; range: () => { from: string; to: string } };
 
@@ -81,6 +79,20 @@ function activePresetId(filters: ReceiptFilters): string | null {
   return null;
 }
 
+// Counts active filter facets beyond the default "This month" range.
+// Used by the mobile filter trigger to show a badge.
+export function activeFilterCount(filters: ReceiptFilters): number {
+  let n = 0;
+  if (filters.vendor) n++;
+  if (filters.category) n++;
+  if (filters.paymentMethod) n++;
+  if (filters.q) n++;
+  // Date range that isn't the "This month" default counts as one.
+  const def = defaultFilters();
+  if (filters.from !== def.from || filters.to !== def.to) n++;
+  return n;
+}
+
 export function FilterBar({
   filters,
   onChange,
@@ -93,26 +105,6 @@ export function FilterBar({
   const { data: paymentMethods } = useDistinctPaymentMethods();
   const activePreset = activePresetId(filters);
 
-  // Debounced search input — local state is the source of truth while typing,
-  // pushed into the URL filters 250ms after the user stops.
-  const [localQ, setLocalQ] = useState(filters.q ?? '');
-  const debounceRef = useRef<number | null>(null);
-  useEffect(() => {
-    // Sync external -> local when URL changes (e.g., browser back button).
-    setLocalQ((current) => (current === (filters.q ?? '') ? current : filters.q ?? ''));
-  }, [filters.q]);
-
-  function handleSearchChange(value: string) {
-    setLocalQ(value);
-    if (debounceRef.current != null) window.clearTimeout(debounceRef.current);
-    debounceRef.current = window.setTimeout(() => {
-      const trimmed = value.trim();
-      // Trigger search only on 4+ chars; empty input clears any existing search.
-      if (trimmed === '') patch({ q: undefined });
-      else if (trimmed.length >= MIN_SEARCH_CHARS) patch({ q: trimmed });
-    }, 250);
-  }
-
   function patch(partial: Partial<ReceiptFilters>) {
     const next: ReceiptFilters = { ...filters, ...partial };
     for (const key of Object.keys(next) as (keyof ReceiptFilters)[]) {
@@ -124,7 +116,6 @@ export function FilterBar({
 
   function applyPreset(p: Preset) {
     if (activePreset === p.id) {
-      // Toggle off
       patch({ from: undefined, to: undefined });
     } else {
       patch(p.range());
@@ -132,25 +123,7 @@ export function FilterBar({
   }
 
   return (
-    <div className="rounded-lg border p-3 space-y-3">
-      <div>
-        <div className="relative">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            type="search"
-            placeholder="Search vendor, items, anything on the receipt…"
-            value={localQ}
-            onChange={(e) => handleSearchChange(e.target.value)}
-            className="pl-8"
-          />
-        </div>
-        {localQ.trim().length > 0 && localQ.trim().length < MIN_SEARCH_CHARS && (
-          <p className="mt-1 text-xs text-muted-foreground">
-            Type at least {MIN_SEARCH_CHARS} characters to search.
-          </p>
-        )}
-      </div>
-
+    <div className="space-y-3">
       <div className="flex flex-wrap gap-1.5">
         {PRESETS.map((p) => {
           const active = activePreset === p.id;
