@@ -21,6 +21,23 @@ Once all three exist, the dashboard becomes a monthly reconciliation view: the
 statement total broken down by which transactions have matching receipts or
 invoices, and which don't.
 
+## Try it
+
+Live at **https://receipts-ochre.vercel.app**.
+
+For a quick look without signing up:
+
+- **Email:** `test@receipts.com`
+- **Password:** `123456`
+
+A few caveats:
+
+- The seeded receipts on this account are from 2020. The default filter is
+  "This month", so the list will look empty until you change the date range
+  (try **This year**, or set a custom range starting in 2020).
+- Anyone using these credentials sees the same data — treat it as shared
+  scratch space. If you want a clean slate, sign up with your own email.
+
 ## Visuals
 
 **Receipts list** — spend summary at the top, search and faceted filters,
